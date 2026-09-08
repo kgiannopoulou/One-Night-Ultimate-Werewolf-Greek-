@@ -17,6 +17,18 @@ Your phone and computer need to be on the same Wi-Fi network. If they aren't
 (e.g. you're on a different network), run `npx expo start --tunnel` instead
 (slower, but works over the internet).
 
+## Playing it in a browser instead
+
+You don't need a phone at all to try it out — run:
+```
+npx expo start --web
+```
+then copy-paste the address it prints (something like `http://localhost:8082`)
+into your browser's address bar and play there as well. This is the fastest
+way to test it on the same computer, though narrator audio and the
+"pass the phone" flow feel a bit different on a keyboard/mouse than on an
+actual phone.
+
 ## How to play
 
 1. **Νέο Παιχνίδι** → add all your friends' names (they'll take turns holding
