@@ -1,7 +1,7 @@
 // Single source of truth for narrator line keys + Greek text, shared by the
-// voice-generation script. Keep this in sync with src/game/nightScript.ts —
-// if you edit the wording there, copy the change here too before
-// regenerating audio.
+// voice-generation script. Keep this in sync with src/game/nightScript.ts
+// and src/game/dayScript.ts — if you edit the wording there, copy the
+// change here too before regenerating audio.
 
 export const LINES = [
   { key: "intro", text: "Κλείστε όλοι τα μάτια σας." },
@@ -46,4 +46,12 @@ export const LINES = [
     text: "Ξάγρυπνε, ξύπνα και δες την κάρτα σου, για να δεις αν άλλαξε.",
   },
   { key: "insomniac_sleep", text: "Ξάγρυπνε, κλείσε τα μάτια σου." },
+  {
+    key: "day_warning",
+    text: "Απομένει ενάμιση λεπτό. Αποφασίστε ποιον θα ψηφίσετε.",
+  },
+  {
+    key: "day_time_up",
+    text: "Ο χρόνος τελείωσε! Όλοι μαζί: τρία, δύο, ένα... Ψηφίστε!",
+  },
 ];

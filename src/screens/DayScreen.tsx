@@ -1,10 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useKeepAwake } from "expo-keep-awake";
 import { Screen } from "../components/Screen";
 import { Button } from "../components/Button";
 import { colors, typography } from "../theme/colors";
 import { useGame } from "../context/GameContext";
+import * as Narrator from "../narrator/Narrator";
+import { DAY_LINES } from "../game/dayScript";
+
+const DISCUSSION_SECONDS = 5 * 60;
+const WARNING_AT_SECONDS = 90; // 1 minute 30 seconds left
 
 export default function DayScreen({ navigation }: any) {
   useKeepAwake();
@@ -12,8 +17,46 @@ export default function DayScreen({ navigation }: any) {
   const [phase, setPhase] = useState<"discuss" | "voting">("discuss");
   const [voterIndex, setVoterIndex] = useState(0);
   const [revealVoter, setRevealVoter] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(DISCUSSION_SECONDS);
+
+  // Guard the two narrator cues so they each fire exactly once per game,
+  // even though the tick effect below re-runs every second.
+  const warnedRef = useRef(false);
+  const timeUpRef = useRef(false);
 
   const voter = players[voterIndex];
+
+  // Discussion countdown — ticks once per second while still discussing.
+  useEffect(() => {
+    if (phase !== "discuss") return;
+    const interval = setInterval(() => {
+      setSecondsLeft((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [phase]);
+
+  // Narrator cues at 1:30 remaining, then force the vote to start at 0:00.
+  useEffect(() => {
+    if (phase !== "discuss") return;
+
+    if (secondsLeft === WARNING_AT_SECONDS && !warnedRef.current) {
+      warnedRef.current = true;
+      Narrator.speakLine("day_warning", DAY_LINES.warning);
+    }
+
+    if (secondsLeft === 0 && !timeUpRef.current) {
+      timeUpRef.current = true;
+      (async () => {
+        await Narrator.speakLine("day_time_up", DAY_LINES.timeUp);
+        startVoting();
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secondsLeft, phase]);
+
+  useEffect(() => {
+    return () => Narrator.stop();
+  }, []);
 
   function startVoting() {
     clearVotes();
@@ -33,15 +76,22 @@ export default function DayScreen({ navigation }: any) {
   }
 
   if (phase === "discuss") {
+    const minutes = Math.floor(secondsLeft / 60);
+    const seconds = secondsLeft % 60;
+    const timeLabel = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    const isUrgent = secondsLeft <= WARNING_AT_SECONDS;
+
     return (
       <Screen scroll={false}>
         <View style={styles.center}>
           <Text style={styles.icon}>💬</Text>
           <Text style={[typography.h2, { textAlign: "center" }]}>Ξημέρωσε!</Text>
           <Text style={[typography.body, { textAlign: "center", marginTop: 12 }]}>
-            Συζητήστε μεταξύ σας ποιος πιστεύετε ότι είναι Λύκος. Όταν είστε έτοιμοι, ξεκινήστε την
-            ψηφοφορία.
+            Συζητήστε μεταξύ σας ποιος πιστεύετε ότι είναι Λύκος. Όταν λήξει ο χρόνος, θα ξεκινήσει
+            αυτόματα η ψηφοφορία.
           </Text>
+          <View style={{ height: 20 }} />
+          <Text style={[styles.timer, isUrgent && styles.timerUrgent]}>{timeLabel}</Text>
           <View style={{ height: 30 }} />
           <Button label="Ξεκίνα την Ψηφοφορία" onPress={startVoting} style={{ width: "100%" }} />
         </View>
@@ -89,6 +139,13 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
   icon: { fontSize: 56, marginBottom: 16 },
   bigName: { color: colors.accentAlt, fontSize: 34, fontWeight: "800", marginTop: 6 },
+  timer: {
+    color: colors.accentAlt,
+    fontSize: 56,
+    fontWeight: "800",
+    fontVariant: ["tabular-nums"],
+  },
+  timerUrgent: { color: colors.danger },
   choice: {
     backgroundColor: colors.card,
     borderColor: colors.cardBorder,
