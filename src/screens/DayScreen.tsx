@@ -9,7 +9,8 @@ import * as Narrator from "../narrator/Narrator";
 import { DAY_LINES } from "../game/dayScript";
 
 const DISCUSSION_SECONDS = 5 * 60;
-const WARNING_AT_SECONDS = 90; // 1 minute 30 seconds left
+const ONE_MINUTE_WARNING_SECONDS = 60;
+const THIRTY_SECOND_WARNING_SECONDS = 30;
 
 export default function DayScreen({ navigation }: any) {
   useKeepAwake();
@@ -19,9 +20,10 @@ export default function DayScreen({ navigation }: any) {
   const [revealVoter, setRevealVoter] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(DISCUSSION_SECONDS);
 
-  // Guard the two narrator cues so they each fire exactly once per game,
-  // even though the tick effect below re-runs every second.
-  const warnedRef = useRef(false);
+  // Guard each narrator cue so it fires exactly once per game, even though
+  // the tick effect below re-runs every second.
+  const oneMinuteWarnedRef = useRef(false);
+  const thirtySecondWarnedRef = useRef(false);
   const timeUpRef = useRef(false);
 
   const voter = players[voterIndex];
@@ -35,13 +37,18 @@ export default function DayScreen({ navigation }: any) {
     return () => clearInterval(interval);
   }, [phase]);
 
-  // Narrator cues at 1:30 remaining, then force the vote to start at 0:00.
+  // Narrator cues at 1:00 and 0:30 remaining, then force the vote at 0:00.
   useEffect(() => {
     if (phase !== "discuss") return;
 
-    if (secondsLeft === WARNING_AT_SECONDS && !warnedRef.current) {
-      warnedRef.current = true;
-      Narrator.speakLine("day_warning", DAY_LINES.warning);
+    if (secondsLeft === ONE_MINUTE_WARNING_SECONDS && !oneMinuteWarnedRef.current) {
+      oneMinuteWarnedRef.current = true;
+      Narrator.speakLine("day_warning_60", DAY_LINES.warningOneMinute);
+    }
+
+    if (secondsLeft === THIRTY_SECOND_WARNING_SECONDS && !thirtySecondWarnedRef.current) {
+      thirtySecondWarnedRef.current = true;
+      Narrator.speakLine("day_warning_30", DAY_LINES.warningThirtySeconds);
     }
 
     if (secondsLeft === 0 && !timeUpRef.current) {
@@ -79,7 +86,7 @@ export default function DayScreen({ navigation }: any) {
     const minutes = Math.floor(secondsLeft / 60);
     const seconds = secondsLeft % 60;
     const timeLabel = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-    const isUrgent = secondsLeft <= WARNING_AT_SECONDS;
+    const isUrgent = secondsLeft <= ONE_MINUTE_WARNING_SECONDS;
 
     return (
       <Screen scroll={false}>
