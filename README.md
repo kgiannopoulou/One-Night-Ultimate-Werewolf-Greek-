@@ -3,6 +3,8 @@
 A pass-and-play companion app for the party game **One Night Ultimate Werewolf**,
 with a Greek narrator that runs the night phase for you.
 
+**▶ Play it in your browser:** https://kgiannopoulou.github.io/One-Night-Ultimate-Werewolf-Greek-/
+
 ## Running it on your iPhone (no Mac needed)
 
 1. Install **Expo Go** from the App Store on your iPhone.

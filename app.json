@@ -25,6 +25,9 @@
     },
     "plugins": [
       "expo-audio"
-    ]
+    ],
+    "experiments": {
+      "baseUrl": "/One-Night-Ultimate-Werewolf-Greek-"
+    }
   }
 }
